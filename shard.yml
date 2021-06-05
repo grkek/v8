@@ -6,6 +6,9 @@ authors:
 
 crystal: 1.0.0
 
+scripts:
+  postinstall: "V8_VERSION=6.3.292.48.1 GEM_ARCH=universal-darwin-16 ./.travis/install.sh" 
+
 license: MIT
 
 development_dependencies:
