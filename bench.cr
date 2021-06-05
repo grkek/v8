@@ -7,7 +7,7 @@ ctx = V8::Context.new(iso)
 global = ctx.global
 
 global.set "fn", V8::CrystalFunction.new(ctx, "fn", V8::FunctionCallback.new do |info|
-  return nil
+  next nil
 end)
 
 ctx.eval "function hello(){ return \"world\" }"
@@ -35,7 +35,7 @@ Benchmark.ips do |x|
   }
   x.report("bind a function") {
     V8::CrystalFunction.new(ctx, "", V8::FunctionCallback.new do |info|
-      return nil
+      next nil
     end)
   }
   x.report("get heap statistics") {

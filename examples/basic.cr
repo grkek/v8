@@ -3,53 +3,46 @@ require "../src/v8"
 iso = V8::Isolate.new
 ctx = iso.create_context
 
-puts V8::VERSION
+closure = ->{ puts "Hello, World!" }
 
-# fn = ctx.create_function -> (info : LibV8::FunctionCallbackInfo) {
-#   puts "hello crystal", info
-# }
+logfn = V8::CrystalFunction.new(ctx, "log", V8::FunctionCallback.new do |info|
+  puts "in log!"
+  puts info.args.map(&.to_s).join(" ")
 
-fn = V8::CrystalFunction.new(ctx, "blah", V8::FunctionCallback.new do |info|
-  puts "hello crystal", info
-  return nil
+  next nil
 end)
+
 fn2 = V8::CrystalFunction.new(ctx, "blah", V8::FunctionCallback.new do |info|
-  puts "hello crystal 22222", info
-  return nil
+  pp info
+  closure.call
+
+  next nil
 end)
-
-
-# puts "fn function?", fn.function?
 
 global = ctx.global
-puts global.to_s
 
-global.set("cb", fn)
 global.set("cb2", fn2)
+global.set("log", logfn)
 
-p iso.heap_statistics
+begin
+  ctx.eval <<-JS
+    function printData(arguments) {
+      log(arguments);
+    }
+  JS
 
-20.times do |n|
-  begin
-    ctx.eval "cb('boom'); cb2(123, 456)"
-  rescue ex : Exception
-    puts "rescued!", ex
-  end
+  ctx.eval <<-JS
+    class HelloWorld {
+      constructor() {
+        this.mainWindow = "Hello, World!"
+      }
+    }
+
+    let helloWorld = new HelloWorld()
+    printData(helloWorld)
+  JS
+
+  ctx.eval "cb2(123, 456)"
+rescue ex : Exception
+  puts "rescued!", ex
 end
-
-p iso.heap_statistics
-
-global.set("cb", fn)
-global.set("cb2", fn2)
-
-p iso.heap_statistics
-
-20.times do |n|
-  begin
-    ctx.eval "cb('boom'); cb2(123, 456)"
-  rescue ex : Exception
-    puts "rescued!", ex
-  end
-end
-
-p iso.heap_statistics

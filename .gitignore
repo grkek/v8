@@ -4,3 +4,5 @@ libv8
 bin
 .vscode
 .shards
+
+/shard.lock
